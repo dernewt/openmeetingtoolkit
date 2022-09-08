@@ -17,13 +17,16 @@ public record Location(double Longitude, double Latitude)
 }
 
 public record Meeting(
-    string Name,
+    string Government,
+    string Publicbody,
     string Location,
     string Address,
     string Schedule,
-    DateTime Start,
-    DateTime End,
+    string Start,
+    string End,
     string Remote,
-    string MoreInfo)
+    string MoreInfo) //moreinfo is gone too
 {
+    private static int AutoIncrement = 100;
+    public int Id { get; } = AutoIncrement++;
 }
