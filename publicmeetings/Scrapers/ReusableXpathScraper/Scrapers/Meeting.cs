@@ -34,6 +34,15 @@ public record Meeting(
     string Remote,
     string MoreInfo) //moreinfo is gone too
 {
-    private static int AutoIncrement = 100;
-    public int Id => AutoIncrement++; //GOTCHA this is a dirty hack
+    protected static int AutoIncrement = 100; //GOTCHA this is a dirty hack
+
+
+    protected int _Id = -1;
+    public int Id {
+        get {
+            if (_Id < 0)
+                _Id = AutoIncrement++;
+            return _Id;
+        }
+    } 
 }

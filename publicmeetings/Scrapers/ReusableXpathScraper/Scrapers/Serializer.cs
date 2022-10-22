@@ -50,6 +50,7 @@ public static class Serializer
 
         var flatMeetings = meetings.Select(m => new
         {
+            m.Properties.Id,
             m.Properties.Government,
             Public_body = m.Properties.Publicbody,
             On_Map = "",
@@ -68,7 +69,7 @@ public static class Serializer
         csv.WriteRecords(flatMeetings);
         csv.Flush();
         var csvData = writer.ToString();
-        csvData = string.Join(Environment.NewLine, csvData.Split(Environment.NewLine).Select((r, i) => i == 0 ? r.Replace('_', ' ') : r)); //there has to be an easy way to do this with csvhelper but I don't see it
+
         return csvData;
     }
 
