@@ -16,6 +16,19 @@ public static class Serializer
         return writer.ToString();
     }
 
+    public static List<MeetingCorrection> FromCsv(this string meetingCsv)
+    {
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            PrepareHeaderForMatch = args => args.Header.ToLowerInvariant().Replace(" ", ""),
+            ShouldSkipRecord = row => row.ToString()?.Trim()?.All(c => c == ',' || c == ' ' ) ?? true,
+        };
+
+        using var reader = new StreamReader(meetingCsv);
+        using var csv = new CsvReader(reader, config);
+        return csv.GetRecords<MeetingCorrection>().ToList();
+    }
+
     public static async IAsyncEnumerable<MappableMeeting> FromCsv(this string meetingCsv, MeetingFactory factory)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -30,6 +43,33 @@ public static class Serializer
         {
             yield return await factory.GetMappableMeeting(item);
         }
+    }
+
+    public static string ToCsv(this IEnumerable<MappableMeeting> meetings)
+    {
+
+        var flatMeetings = meetings.Select(m => new
+        {
+            m.Properties.Government,
+            Public_body = m.Properties.Publicbody,
+            On_Map = "",
+            m.Properties.Location,
+            m.Properties.Address,
+            m.Geometry.Latitude,
+            m.Geometry.Longitude,
+            m.Properties.Schedule,
+            Start_time = m.Properties.Start,
+            End_time = m.Properties.End,
+            Remote_options = m.Properties.Remote,
+            Source = m.Properties.MoreInfo
+        });
+        var writer = new StringWriter();
+        using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+        csv.WriteRecords(flatMeetings);
+        csv.Flush();
+        var csvData = writer.ToString();
+        csvData = string.Join(Environment.NewLine, csvData.Split(Environment.NewLine).Select((r, i) => i == 0 ? r.Replace('_', ' ') : r)); //there has to be an easy way to do this with csvhelper but I don't see it
+        return csvData;
     }
 
     private static JsonSerializerOptions JsonOptions()

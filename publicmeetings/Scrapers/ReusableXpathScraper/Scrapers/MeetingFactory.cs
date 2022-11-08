@@ -1,7 +1,6 @@
 ﻿namespace Scrapers;
 using Geo.MapBox.Models.Parameters;
 using Geo.MapBox.Abstractions;
-using System.Text.RegularExpressions;
 using Geo.MapBox.Models.Responses;
 using System.Globalization;
 
@@ -40,14 +39,14 @@ public class MeetingFactory
         var coords = new Location(bestLocation.Geometry.Coordinate.Longitude, bestLocation.Geometry.Coordinate.Latitude);
 
         var betterMeeting = new Meeting(
-            Government: meeting.County,
+            Government: meeting.County + " County",
             Publicbody: meeting.Name,
             Location: meeting.Location,
             Address: bestLocation.PlaceInformation.First().PlaceName,
             Schedule: meeting.Time,
-            Start: "",
-            End: "",
-            Remote: "",
+            Start: "", //TODO
+            End: "", //TODO
+            Remote: "", //TODO
             MoreInfo: meeting.MoreInfo)
         {
         };
@@ -63,7 +62,7 @@ public class MeetingFactory
     /// <returns></returns>
     protected string AnchorLocation(string? location, params string[] anchors)
     {
-        var badLocations = new[] { "as called" };
+        var badLocations = new[] { "as called", "various locations", "vevent" };
 
         if (string.IsNullOrWhiteSpace(location)
             || badLocations.Contains(location.ToLower()))
@@ -78,9 +77,7 @@ public class MeetingFactory
 
     public virtual async Task<Feature> ResolveLocation(string locationQuery)
     {
-        var cleaner = new Regex(@"[^A-Za-z0-9]+"); //library isn't url encoding properly
-        var cleanQuery = cleaner.Replace(locationQuery, " ");
-        var query = new GeocodingParameters { Query = cleanQuery, };
+        var query = new GeocodingParameters { Query = locationQuery, };
         query.Countries.Add(RegionInfo.CurrentRegion);
         var response = await Mapbox.GeocodingAsync(query);
         var best = response.Features.OrderBy(f => f.Relevance).First();
